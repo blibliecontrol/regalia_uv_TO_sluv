@@ -6,7 +6,7 @@ Note:
 - This is the very ((second)) implementation of this tool and will not work for everyone
 - ((No guarantees that I can do anything to improve it because I am not a coder))
 - This file uses the female body but it should be able to convert male textures as well
-- ((The resulting bake images will have imperfections !!! ESPECIALLY on the feet/toe area and buttcrack, I might come back to that if I can figure out an improvement.))
+- ((The resulting bake images will have imperfections !!! ESPECIALLY on the feet/toe area, fingrtips, and buttcrack, I might come back to that if I can figure out an improvement but idk what I can do...))
 - The script is made to use GPU rendering on Cycles to speed up baking
 
 Prerequisites:
