@@ -4,6 +4,7 @@ import shutil
 import os.path
 
 # sorry if i forgot to fix some comments, i'm not a coder lol but it should work (???) *thumbs up*
+# i just switched the shrinkwrap back over because the other way ended up sucking (9-9)
 
 # path to the Regalia body textures that should be converted
 SOURCE_LEFT_BODY_IMAGE = bpy.path.abspath('//regalia_L.png')
@@ -348,8 +349,8 @@ bpy.ops.object.material_slot_remove_unused()
 if devkit_file == REGALIA_BLEND_FILE_18:
     bpy.ops.transform.resize(value=(1.07, 1, 1))
 
-shrinkwrap = regalia_body.modifiers.new(name = "Shrinkwrap", type = "SHRINKWRAP")
-shrinkwrap.target = base_female_body
+shrinkwrap = base_female_body.modifiers.new(name = "Shrinkwrap", type = "SHRINKWRAP")
+shrinkwrap.target = regalia_body
 shrinkwrap.offset = 0.001
 shrinkwrap.wrap_method = 'NEAREST_SURFACEPOINT'
 shrinkwrap.wrap_mode = 'OUTSIDE_SURFACE'
@@ -376,18 +377,20 @@ bpy.ops.object.select_all(action = 'DESELECT')
 # Apply modifiers, this makes baking work better
 #
 
-# Apply armature and shrinkwrap to Regalia body
+# Apply armature to Regalia body
 regalia_body.select_set(True)
 bpy.context.view_layer.objects.active = regalia_body
 bpy.ops.object.modifier_apply(modifier = "Avatar")
-bpy.ops.object.modifier_apply(modifier = "Shrinkwrap")
+
 
 regalia_body.select_set(False)
 
-# Apply armature to SL body
+# Apply armature and shrinkwrap to SL body
 base_female_body.select_set(True)
 bpy.context.view_layer.objects.active = base_female_body
 bpy.ops.object.modifier_apply(modifier = "Armature")
+bpy.ops.object.modifier_apply(modifier = "Shrinkwrap")
+
 base_female_body.select_set(False)
 
 regalia_body.parent = None
