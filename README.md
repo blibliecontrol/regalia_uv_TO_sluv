@@ -1,5 +1,7 @@
 ((This is a blender python script to convert textures made for the Sugarcult Project Regalia bodies to the Second Life default body UV.))
 
+((USE RESPONSIBLY! Or don't, I'm not your parent))
+
 Note:
 - This is the very ((second)) implementation of this tool and will not work for everyone
 - ((No guarantees that I can do anything to improve it because I am not a coder))
