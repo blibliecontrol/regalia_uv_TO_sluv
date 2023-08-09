@@ -3,9 +3,11 @@ import urllib
 import shutil
 import os.path
 
-# path to the SL body textures that should be converted
-SOURCE_UPPER_BODY_IMAGE = bpy.path.abspath('//sl_upper_body_template.png')
-SOURCE_LOWER_BODY_IMAGE = bpy.path.abspath('//sl_lower_body_template.png')
+# sorry if i forgot to fix some comments, i'm not a coder lol but it should work (???) *thumbs up*
+
+# path to the Regalia body textures that should be converted
+SOURCE_LEFT_BODY_IMAGE = bpy.path.abspath('//regalia_L.png')
+SOURCE_RIGHT_BODY_IMAGE = bpy.path.abspath('//regalia_R.png')
 
 # path to the Regalia Development Kit blend files 1.7 and 1.8
 REGALIA_BLEND_FILE_17 = bpy.path.abspath('//Project_Regalia_furrybody_MASTER_1.7.blend')
@@ -66,9 +68,9 @@ while bpy.ops.outliner.orphans_purge() != {'CANCELLED'}:
 #
 
 # Check if source images are available
-if not os.path.isfile(SOURCE_LOWER_BODY_IMAGE):
+if not os.path.isfile(SOURCE_LEFT_BODY_IMAGE):
     raise Exception()
-if not os.path.isfile(SOURCE_UPPER_BODY_IMAGE):
+if not os.path.isfile(SOURCE_RIGHT_BODY_IMAGE):
     raise Exception()
 
 # Check if the Regalia dev kit is available
@@ -227,13 +229,12 @@ bpy.ops.object.material_slot_remove_unused()
 # Deselect everything
 bpy.ops.object.select_all(action = 'DESELECT')
 
-# Add baking images
-bake_left_image = bpy.data.images.new(name = "Regalia Bake Left",width=2048,height=2048)
-bake_right_image = bpy.data.images.new(name = "Regalia Bake Right",width=2048,height=2048)
+# Load source images and make materials for each body half from them
+regalia_left_image = bpy.data.images.load(SOURCE_LEFT_BODY_IMAGE)
+regalia_right_image = bpy.data.images.load(SOURCE_RIGHT_BODY_IMAGE)
 
-# Add two new materials, one for each half of the body
-material_regalia_left = create_emissive_material(regalia_body, "Regalia Left", bake_left_image)
-material_regalia_right = create_emissive_material(regalia_body, "Regalia Right", bake_right_image)
+material_regalia_left = create_emissive_material(regalia_body, "Regalia Left", regalia_left_image)
+material_regalia_right = create_emissive_material(regalia_body, "Regalia Right", regalia_right_image)
 
 # Go into edit mode
 bpy.ops.object.editmode_toggle()
@@ -291,11 +292,13 @@ bpy.ops.object.select_all(action = 'DESELECT')
 base_female_body.rotation_euler.z -= 3.14159 / 2.0
 
 # Load source images
-sl_skin_upper_image = bpy.data.images.load(SOURCE_UPPER_BODY_IMAGE)
-sl_skin_lower_image = bpy.data.images.load(SOURCE_LOWER_BODY_IMAGE)
 
-sl_upper_emissive = create_emissive_material(base_female_body, "SL Upper Body", sl_skin_upper_image)
-sl_lower_emissive = create_emissive_material(base_female_body, "SL Lower Body", sl_skin_lower_image)
+# Creating bake images and assigning them to SLUV body halves
+bake_upper_image = bpy.data.images.new(name = "SLUV Bake Upper",width=2048,height=2048)
+bake_lower_image = bpy.data.images.new(name = "SLUV Bake Lower",width=2048,height=2048)
+
+sl_upper_emissive = create_emissive_material(base_female_body, "SL Upper Body", bake_upper_image)
+sl_lower_emissive = create_emissive_material(base_female_body, "SL Lower Body", bake_lower_image)
 
 # Apply rotational transform
 bpy.ops.object.transform_apply(rotation=True)
@@ -345,8 +348,8 @@ bpy.ops.object.material_slot_remove_unused()
 if devkit_file == REGALIA_BLEND_FILE_18:
     bpy.ops.transform.resize(value=(1.07, 1, 1))
 
-shrinkwrap = base_female_body.modifiers.new(name = "Shrinkwrap", type = "SHRINKWRAP")
-shrinkwrap.target = regalia_body
+shrinkwrap = regalia_body.modifiers.new(name = "Shrinkwrap", type = "SHRINKWRAP")
+shrinkwrap.target = base_female_body
 shrinkwrap.offset = 0.001
 shrinkwrap.wrap_method = 'NEAREST_SURFACEPOINT'
 shrinkwrap.wrap_mode = 'OUTSIDE_SURFACE'
@@ -373,17 +376,18 @@ bpy.ops.object.select_all(action = 'DESELECT')
 # Apply modifiers, this makes baking work better
 #
 
-# Apply armature to Regalia body
+# Apply armature and shrinkwrap to Regalia body
 regalia_body.select_set(True)
 bpy.context.view_layer.objects.active = regalia_body
 bpy.ops.object.modifier_apply(modifier = "Avatar")
+bpy.ops.object.modifier_apply(modifier = "Shrinkwrap")
+
 regalia_body.select_set(False)
 
-# Apply armature and shrinkwrap to SL body
+# Apply armature to SL body
 base_female_body.select_set(True)
 bpy.context.view_layer.objects.active = base_female_body
 bpy.ops.object.modifier_apply(modifier = "Armature")
-bpy.ops.object.modifier_apply(modifier = "Shrinkwrap")
 base_female_body.select_set(False)
 
 regalia_body.parent = None
@@ -413,11 +417,11 @@ bpy.ops.object.select_all(action = 'DESELECT')
 base_female_body.select_set(True)
 regalia_body.select_set(True)
 
-# Make the Regalia body the active object
-bpy.context.view_layer.objects.active = bpy.data.objects['body_athletic']
+# Make the SLUV body the active object
+bpy.context.view_layer.objects.active = bpy.data.objects['SL Female Body']
 
-regalia_body.show_wire = False
-regalia_body.show_all_edges = False
+base_female_body.show_wire = False
+base_female_body.show_all_edges = False
 
 # BAKE!
 bpy.ops.object.bake(type = 'EMIT')
@@ -441,13 +445,13 @@ regalia_body.show_all_edges = False
 bpy.ops.object.select_all(action = 'DESELECT')
 
 # Save baked images
-bake_left_image.filepath_raw = "//Regalia_Bake_Left.png"
-bake_left_image.file_format = 'PNG'
-bake_left_image.save()
+bake_upper_image.filepath_raw = "//SLUV_Bake_Upper.png"
+bake_upper_image.file_format = 'PNG'
+bake_upper_image.save()
 
-bake_right_image.filepath_raw = "//Regalia_Bake_Right.png"
-bake_right_image.file_format = 'PNG'
-bake_right_image.save()
+bake_lower_image.filepath_raw = "//SLUV_Bake_Lower.png"
+bake_lower_image.file_format = 'PNG'
+bake_lower_image.save()
 
 # Cleanup orphaned data blocks
 while bpy.ops.outliner.orphans_purge() != {'CANCELLED'}:
